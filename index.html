@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TracePace">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+<title>TracePace</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════ */
+:root {
+  /* Brand palette */
+  --teal:       #1C768F;
+  --teal-dim:   #071820;
+  --teal-mid:   #0e3040;
+  --sage:       #99A57D;
+  --sage-dim:   #141a0e;
+  --orange:     #EB4604;
+  --orange2:    #FA991C;
+  --orange-dim: #1c0800;
+  --cream:      #FBF3F2;
+  --navy:       #032539;
+
+  /* Backgrounds */
+  --bg:         #000;
+  --bg1:        #080c0f;
+  --bg2:        #0d1318;
+  --bg3:        #131c22;
+
+  /* Borders */
+  --border:     #1e2d38;
+  --border2:    #2a3d4a;
+
+  /* Text */
+  --text:       #FBF3F2;
+  --text2:      #99A57D;
+  --text3:      #6a8a96;
+
+  /* Answers — big yellow */
+  --yellow:     #FA991C;
+  --yellow-dim: #1a0f00;
+
+  /* Utility */
+  --green:      #2ecc71;
+  --green-dim:  #061410;
+  --red:        #e74c3c;
+
+  --font:       'DM Sans', sans-serif;
+  --mono:       'DM Mono', monospace;
+  --r:          12px;
+  --r-sm:       8px;
+  --safe-top:   env(safe-area-inset-top, 0px);
+  --safe-bot:   env(safe-area-inset-bottom, 0px);
+}
+
+/* ═══════════════════════════════════════
+   RESET + BASE
+═══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  font-size: 16px;
+  line-height: 1.4;
+  overscroll-behavior: none;
+}
+button { font-family: var(--font); cursor: pointer; border: none; background: none; }
+input  { font-family: var(--font); }
+
+/* ═══════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════ */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--safe-top);
+  padding-bottom: calc(var(--safe-bot) + 72px); /* space for tab bar */
+}
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+.header {
+  padding: 20px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.logo-name {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+.logo-name span { color: var(--orange2); }
+.logo-tag {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.header-mode {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--orange2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--orange-dim);
+  border: 1px solid var(--orange);
+  border-radius: 20px;
+  padding: 5px 14px;
+}
+
+/* ═══════════════════════════════════════
+   BOTTOM TAB BAR
+═══════════════════════════════════════ */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg1);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 200;
+  padding-bottom: var(--safe-bot);
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 0 8px;
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: color 0.15s;
+}
+.tab-item.active { color: var(--orange2); }
+.tab-icon { font-size: 20px; line-height: 1; }
+
+/* ═══════════════════════════════════════
+   PAGE CONTENT
+═══════════════════════════════════════ */
+.page { display: none; flex: 1; overflow-y: auto; }
+.page.active { display: block; }
+.scroll-area { padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+
+/* ═══════════════════════════════════════
+   SPRINT / ENDURANCE TOGGLE
+═══════════════════════════════════════ */
+.mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--navy);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 4px;
+  gap: 4px;
+}
+.mode-opt {
+  border-radius: var(--r-sm);
+  padding: 13px 8px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text3);
+  transition: all 0.18s;
+  line-height: 1.2;
+}
+.mode-opt small {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 3px;
+  letter-spacing: 0;
+  color: var(--text3);
+}
+.mode-opt.active {
+  background: var(--orange);
+  color: #fff;
+}
+.mode-opt.active small { color: rgba(255,255,255,0.8); }
+
+/* ═══════════════════════════════════════
+   SECTION CARDS
+═══════════════════════════════════════ */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: visible;
+  position: relative;
+}
+.card-clip { overflow: hidden; }
+.card-header {
+  padding: 14px 16px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--teal);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-header-hint {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.card-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow: visible; }
+
+/* ═══════════════════════════════════════
+   FORM ELEMENTS
+═══════════════════════════════════════ */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 0.3px;
+}
+.field-hint {
+  font-size: 12px;
+  color: var(--text3);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* Segmented toggle (Timed / Fixed Laps) */
+.seg {
+  display: grid;
+  background: var(--navy);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm);
+  padding: 3px;
+  gap: 3px;
+}
+.seg.cols-2 { grid-template-columns: 1fr 1fr; }
+.seg-btn {
+  border-radius: 6px;
+  padding: 12px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text3);
+  text-align: center;
+  transition: all 0.15s;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.seg-btn.active {
+  background: var(--teal);
+  color: var(--cream);
+  box-shadow: 0 2px 8px rgba(28,118,143,0.35);
+}
+
+/* Duration inputs */
+.dur-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.dur-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.dur-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.dur-sep {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--text3);
+  padding-top: 20px;
+}
+.num-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 500;
+  text-align: center;
+  padding: 10px 4px;
+  outline: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  transition: border-color 0.15s;
+}
+.num-input:focus { border-color: var(--orange); }
+.num-input::-webkit-inner-spin-button,
+.num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.num-input::placeholder { color: var(--text3); }
+
+/* Laps input */
+.laps-input-row {
+  display: flex;
+  align-items: center;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.laps-input-row input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 500;
+  text-align: center;
+  padding: 10px 8px;
+  outline: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.laps-input-row input::-webkit-inner-spin-button,
+.laps-input-row input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.laps-unit {
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+  border-left: 1px solid var(--border);
+  background: var(--navy);
+  letter-spacing: 0.5px;
+}
+
+/* Fuel / safety inputs */
+.value-input-wrap {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.value-input-wrap:focus-within { border-color: var(--orange); }
+.value-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 500;
+  padding: 11px 14px;
+  outline: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  min-width: 0;
+}
+.value-input::-webkit-inner-spin-button,
+.value-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.value-input::placeholder { color: var(--text3); }
+.value-unit {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+  background: var(--navy);
+  border-left: 1px solid var(--border);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+/* Stepper (safety margin) */
+.stepper {
+  display: flex;
+  align-items: center;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.stepper-btn {
+  width: 52px;
+  height: 52px;
+  font-size: 24px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+.stepper-btn:active { background: var(--orange-dim); color: var(--orange2); }
+.stepper-val {
+  flex: 1;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 12px 0;
+  line-height: 1;
+}
+.stepper-unit {
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+/* ═══════════════════════════════════════
+   COMBO SELECTOR (Game / Car / Track)
+═══════════════════════════════════════ */
+.combo-field { display: flex; flex-direction: column; gap: 6px; position: relative; }
+.combo-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 0.3px;
+}
+.combo-input-row {
+  display: flex;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.combo-input-row:focus-within { border-color: var(--teal); }
+.combo-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 13px 14px;
+  outline: none;
+  min-width: 0;
+}
+.combo-input::placeholder { color: var(--text3); }
+.combo-arrow {
+  padding: 0 14px;
+  font-size: 12px;
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  border-left: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.combo-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0; right: 0;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm);
+  z-index: 400;
+  max-height: 220px;
+  overflow-y: auto;
+  display: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+}
+.combo-dropdown.open { display: block; }
+.combo-opt {
+  padding: 13px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.combo-opt:last-child { border-bottom: none; }
+.combo-opt:active, .combo-opt.hi { background: var(--teal-mid); color: var(--cream); }
+.combo-opt.custom-opt { color: var(--orange2); font-style: italic; }
+.manage-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teal);
+  letter-spacing: 0.3px;
+  padding: 2px 0;
+  align-self: flex-end;
+}
+
+/* Saved combo banner */
+.saved-banner {
+  background: var(--green-dim);
+  border: 1px solid rgba(46,204,113,0.25);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  display: none;
+  gap: 10px;
+  flex-direction: column;
+}
+.saved-banner.visible { display: flex; }
+.saved-banner-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.saved-banner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.saved-banner-item .sbk {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.saved-banner-item .sbv {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green);
+  font-family: var(--mono);
+}
+
+/* ═══════════════════════════════════════
+   CALCULATE BUTTON
+═══════════════════════════════════════ */
+.calc-btn {
+  width: 100%;
+  padding: 18px;
+  background: var(--orange);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: var(--r);
+  transition: background 0.15s, transform 0.1s;
+  active-scale: 0.98;
+}
+.calc-btn:active { background: var(--orange2); transform: scale(0.98); }
+
+/* ═══════════════════════════════════════
+   RESULTS
+═══════════════════════════════════════ */
+.results-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.results-header {
+  padding: 14px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--orange2);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Primary result row */
+.result-primary {
+  padding: 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.result-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+.result-value {
+  font-family: var(--mono);
+  font-size: 52px;
+  font-weight: 500;
+  color: var(--yellow);
+  line-height: 1;
+  letter-spacing: -1px;
+}
+.result-value .result-unit-inline {
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--yellow);
+  opacity: 0.7;
+  margin-left: 4px;
+  letter-spacing: 0;
+}
+.result-sublabel {
+  font-size: 13px;
+  color: var(--text3);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Secondary results grid */
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.result-cell {
+  padding: 16px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.result-cell:nth-child(even) { border-right: none; }
+.result-cell:nth-last-child(-n+2) { border-bottom: none; }
+.result-cell-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+.result-cell-value {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--yellow);
+  line-height: 1;
+}
+.result-cell-unit {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+/* Summary strip */
+.result-summary {
+  padding: 12px 16px;
+  background: var(--navy);
+  font-size: 13px;
+  color: var(--text3);
+  font-family: var(--mono);
+  line-height: 1.5;
+  border-top: 1px solid var(--border);
+}
+.result-summary strong { color: var(--text2); }
+
+/* Stint bar */
+.stint-section {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+}
+.stint-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.stint-bar {
+  height: 32px;
+  border-radius: 4px;
+  display: flex;
+  overflow: hidden;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+}
+.stint-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  border-right: 1px solid rgba(0,0,0,0.3);
+  font-family: var(--mono);
+  letter-spacing: 0.5px;
+  transition: width 0.5s ease;
+}
+.stint-seg:last-child { border-right: none; }
+.stint-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.stint-leg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+.stint-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* Save button */
+.save-btn {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  border: 2px solid var(--orange);
+  border-radius: var(--r);
+  color: var(--orange2);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+.save-btn:active { background: var(--orange-dim); }
+.save-btn:disabled { border-color: var(--border2); color: var(--text3); opacity: 0.5; }
+
+/* ═══════════════════════════════════════
+   SAVED COMBOS PAGE
+═══════════════════════════════════════ */
+.saved-sort-header {
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+.saved-group-header {
+  padding: 12px 16px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--orange2);
+  background: var(--navy);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.saved-card {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+.saved-card-header {
+  padding: 14px 16px 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.saved-card-titles { flex: 1; min-width: 0; }
+.saved-card-car {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.saved-card-track {
+  font-size: 13px;
+  color: var(--text2);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.saved-card-date {
+  font-size: 11px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+.mode-pill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 20px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.pill-sprint {
+  background: rgba(235,70,4,0.15);
+  color: var(--orange2);
+  border: 1px solid rgba(235,70,4,0.4);
+}
+.pill-endurance {
+  background: rgba(28,118,143,0.15);
+  color: var(--teal);
+  border: 1px solid rgba(28,118,143,0.4);
+}
+.saved-card-results {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--border);
+}
+.scr-cell {
+  padding: 10px 12px;
+  border-right: 1px solid var(--border);
+}
+.scr-cell:last-child { border-right: none; }
+.scr-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+.scr-value { font-family: var(--mono); font-size: 17px; font-weight: 500; color: var(--yellow); }
+.scr-unit  { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.saved-card-inputs {
+  padding: 10px 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  background: var(--navy);
+}
+.sci-item .sci-k { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.sci-item .sci-v { font-size: 13px; color: var(--text2); font-family: var(--mono); }
+.saved-card-actions {
+  padding: 10px 16px;
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+.action-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: center;
+  transition: all 0.12s;
+}
+.action-load {
+  background: var(--orange-dim);
+  color: var(--orange2);
+  border: 1px solid var(--orange);
+}
+.action-load:active { background: var(--orange); color: #fff; }
+.action-del {
+  background: transparent;
+  color: var(--red);
+  border: 1px solid rgba(231,76,60,0.25);
+}
+.action-del:active { background: rgba(231,76,60,0.1); }
+
+.empty-saved {
+  padding: 60px 32px;
+  text-align: center;
+  color: var(--text3);
+}
+.empty-saved .empty-icon { font-size: 48px; opacity: 0.3; margin-bottom: 16px; }
+.empty-saved p { font-size: 14px; line-height: 1.6; }
+
+/* ═══════════════════════════════════════
+   MANAGE PAGE
+═══════════════════════════════════════ */
+.manage-section { margin-bottom: 0; }
+.manage-list-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  background: var(--bg2);
+}
+.manage-list-item:last-child { border-bottom: none; }
+.manage-item-name { flex: 1; font-size: 15px; color: var(--text); }
+.manage-del-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  color: var(--text3);
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+.manage-del-btn:active { background: rgba(231,76,60,0.15); color: var(--red); }
+.manage-add-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+}
+.manage-add-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  padding: 12px 14px;
+  outline: none;
+}
+.manage-add-input:focus { border-color: var(--orange); }
+.manage-add-input::placeholder { color: var(--text3); }
+.manage-add-btn {
+  background: var(--orange);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 12px 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.manage-add-btn:active { background: var(--orange2); }
+.manage-section-title {
+  padding: 14px 16px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--orange2);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+#toast {
+  position: fixed;
+  bottom: calc(80px + var(--safe-bot));
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 20px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: all 0.25s;
+  pointer-events: none;
+  z-index: 1000;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═══════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════ */
+.hidden { display: none !important; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.divider { height: 1px; background: var(--border); }
+
+/* ═══════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════ */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.slide-up { animation: slideUp 0.3s ease forwards; }
+
+@keyframes numPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.num-pop { animation: numPop 0.35s ease; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <div class="header-logo">
+      <div>
+        <div class="logo-name">Trace<span>Pace</span></div>
+        <div class="logo-tag">Fuel Strategy</div>
+      </div>
+    </div>
+    <div class="header-mode" id="header-mode">Sprint</div>
+  </header>
+
+  <!-- ══════════════════════════════════
+       PAGE: CALCULATOR
+  ══════════════════════════════════ -->
+  <div class="page active" id="page-calc">
+    <div class="scroll-area">
+
+      <!-- Sprint / Endurance -->
+      <div class="mode-toggle">
+        <div class="mode-opt active" id="mopt-sprint" onclick="setCalcMode('sprint')">
+          ⚡ Sprint
+          <small>Single stint</small>
+        </div>
+        <div class="mode-opt" id="mopt-endurance" onclick="setCalcMode('endurance')">
+          ⏱ Endurance
+          <small>Pit strategy</small>
+        </div>
+      </div>
+
+      <!-- Race Format -->
+      <div class="card card-clip">
+        <div class="card-header">Race Format</div>
+        <div class="card-body">
+
+          <!-- Timed / Fixed Laps toggle -->
+          <div class="seg cols-2" id="format-toggle">
+            <div class="seg-btn active" id="fmt-timed" onclick="setFormat('timed')">
+              Timed Race
+            </div>
+            <div class="seg-btn" id="fmt-laps" onclick="setFormat('laps')">
+              Fixed Laps
+            </div>
+          </div>
+
+          <!-- Timed inputs: always HR : MIN -->
+          <div id="input-timed">
+            <div class="dur-input-row">
+              <div class="dur-field">
+                <label>HR</label>
+                <input class="num-input" type="number" id="inp-dur-a" min="0" max="99" placeholder="0">
+              </div>
+              <div class="dur-sep">:</div>
+              <div class="dur-field">
+                <label>MIN</label>
+                <input class="num-input" type="number" id="inp-dur-b" min="0" max="59" placeholder="25">
+              </div>
+            </div>
+          </div>
+
+          <!-- Fixed laps input -->
+          <div id="input-laps" class="hidden">
+            <div class="laps-input-row">
+              <input type="number" id="inp-fixed-laps" min="1" max="9999" placeholder="30">
+              <div class="laps-unit">LAPS</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Fuel Consumption -->
+      <div class="card card-clip">
+        <div class="card-header">Fuel Consumption</div>
+        <div class="card-body">
+          <div class="field">
+            <div class="value-input-wrap">
+              <input class="value-input" type="number" id="inp-fpl" min="0.01" max="30" step="0.01" placeholder="3.5">
+              <div class="value-unit">L / LAP</div>
+            </div>
+            <div class="field-hint">Found in your setup screen or telemetry</div>
+          </div>
+
+          <!-- Avg lap time (needed for timed race) -->
+          <div class="field" id="field-laptime">
+            <div class="field-label">Avg Lap Time</div>
+            <div class="dur-input-row">
+              <div class="dur-field">
+                <label>M</label>
+                <input class="num-input" type="number" id="inp-lt-m" min="0" max="99" placeholder="1">
+              </div>
+              <div class="dur-sep">:</div>
+              <div class="dur-field">
+                <label>SS</label>
+                <input class="num-input" type="number" id="inp-lt-s" min="0" max="59" step="0.001" placeholder="55">
+              </div>
+            </div>
+            <div class="field-hint">Race pace — not qualifying. Used to estimate lap count.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tank Capacity (Endurance only) -->
+      <div class="card card-clip hidden" id="card-tank">
+        <div class="card-header">Tank Capacity</div>
+        <div class="card-body">
+          <div class="field">
+            <div class="value-input-wrap">
+              <input class="value-input" type="number" id="inp-tank" min="1" max="500" step="0.5" placeholder="120">
+              <div class="value-unit">LITRES</div>
+            </div>
+            <div class="field-hint">Found in car spec or setup screen</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Safety Margin -->
+      <div class="card card-clip">
+        <div class="card-header">Safety Margin</div>
+        <div class="card-body">
+          <div class="field">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="stepSafety(-1)">−</button>
+              <div class="stepper-val" id="safety-val">1</div>
+              <div class="stepper-unit">EXTRA LAPS</div>
+              <button class="stepper-btn" onclick="stepSafety(1)">+</button>
+            </div>
+            <div class="field-hint">Covers formation lap, safety car, or early pit</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Car / Track / Game -->
+      <div class="card" style="overflow:visible;z-index:10;">
+        <div class="card-header">
+          Car · Track · Game
+          <button class="manage-link" onclick="goManage()">Manage ›</button>
+        </div>
+        <div class="card-body">
+
+          <!-- Game -->
+          <div class="combo-field" id="game-wrap">
+            <div class="combo-label">Game</div>
+            <div class="combo-input-row">
+              <input class="combo-input" id="game-input" type="text"
+                placeholder="e.g. ACC, iRacing, AMS2…"
+                oninput="filterCombo('game')" onfocus="openDd('game')" onkeydown="ddKey(event,'game')" autocomplete="off">
+              <div class="combo-arrow" onclick="toggleDd('game')">▾</div>
+            </div>
+            <div class="combo-dropdown" id="game-dd"></div>
+          </div>
+
+          <!-- Car -->
+          <div class="combo-field" id="car-wrap">
+            <div class="combo-label">Car</div>
+            <div class="combo-input-row">
+              <input class="combo-input" id="car-input" type="text"
+                placeholder="Search or enter car name…"
+                oninput="filterCombo('car')" onfocus="openDd('car')" onkeydown="ddKey(event,'car')" autocomplete="off">
+              <div class="combo-arrow" onclick="toggleDd('car')">▾</div>
+            </div>
+            <div class="combo-dropdown" id="car-dd"></div>
+          </div>
+
+          <!-- Track -->
+          <div class="combo-field" id="track-wrap">
+            <div class="combo-label">Track</div>
+            <div class="combo-input-row">
+              <input class="combo-input" id="track-input" type="text"
+                placeholder="Search or enter track name…"
+                oninput="filterCombo('track')" onfocus="openDd('track')" onkeydown="ddKey(event,'track')" autocomplete="off">
+              <div class="combo-arrow" onclick="toggleDd('track')">▾</div>
+            </div>
+            <div class="combo-dropdown" id="track-dd"></div>
+          </div>
+
+          <!-- Saved combo banner -->
+          <div class="saved-banner" id="saved-banner">
+            <div class="saved-banner-title">⚡ Saved data found — fields pre-filled</div>
+            <div class="saved-banner-grid" id="saved-banner-grid"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Calculate button -->
+      <button class="calc-btn" onclick="calculate()">CALCULATE FUEL</button>
+
+      <!-- Results (hidden until calculated) -->
+      <div class="results-card card-clip hidden slide-up" id="results-section">
+
+        <div class="results-header">Results</div>
+
+        <!-- Fuel Required — hero -->
+        <div class="result-primary">
+          <div class="result-label">Fuel Required</div>
+          <div class="result-value" id="res-fuel">
+            —<span class="result-unit-inline">L</span>
+          </div>
+          <div class="result-sublabel" id="res-fuel-sub"></div>
+        </div>
+
+        <!-- Expected Laps (always) + grid extras -->
+        <div class="result-grid" id="result-grid">
+          <div class="result-cell">
+            <div class="result-cell-label">Expected Laps</div>
+            <div class="result-cell-value" id="res-laps">—</div>
+            <div class="result-cell-unit" id="res-laps-sub"></div>
+          </div>
+          <!-- Endurance extras inserted here by JS -->
+        </div>
+
+        <!-- Summary strip -->
+        <div class="result-summary hidden" id="result-summary"></div>
+
+        <!-- Stint bar (endurance) -->
+        <div class="stint-section hidden" id="stint-section">
+          <div class="stint-label">Stint Breakdown</div>
+          <div class="stint-bar" id="stint-bar"></div>
+          <div class="stint-legend" id="stint-legend"></div>
+        </div>
+
+      </div>
+
+      <!-- Save button (shown after calculate) -->
+      <button class="save-btn hidden" id="btn-save" onclick="saveCombo()">SAVE THIS COMBO</button>
+
+    </div><!-- /scroll-area -->
+  </div><!-- /page-calc -->
+
+  <!-- ══════════════════════════════════
+       PAGE: SAVED COMBOS
+  ══════════════════════════════════ -->
+  <div class="page" id="page-saved">
+    <div id="saved-content"></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       PAGE: MANAGE
+  ══════════════════════════════════ -->
+  <div class="page" id="page-manage">
+    <div id="manage-content"></div>
+  </div>
+
+  <!-- ── Bottom Tab Bar ── -->
+  <nav class="tab-bar">
+    <button class="tab-item active" id="tab-calc" onclick="goTab('calc')">
+      <span class="tab-icon">⛽</span>
+      Calculator
+    </button>
+    <button class="tab-item" id="tab-saved" onclick="goTab('saved')">
+      <span class="tab-icon">📋</span>
+      Saved
+    </button>
+    <button class="tab-item" id="tab-manage" onclick="goTab('manage')">
+      <span class="tab-icon">⚙️</span>
+      Manage
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ════════════════════════════════
+//  STORAGE KEYS
+// ════════════════════════════════
+const LS_SESSIONS = 'tp_sessions_v1';
+const LS_CARS     = 'tp_cars_v3';
+const LS_TRACKS   = 'tp_tracks_v3';
+const LS_GAMES    = 'tp_games_v2';
+
+// ════════════════════════════════
+//  STATE
+// ════════════════════════════════
+let calcMode   = 'sprint';   // sprint | endurance
+let raceFormat = 'timed';    // timed | laps
+let safetyLaps = 1;
+let carList    = [];
+let trackList  = [];
+let gameList   = [];
+let ddHi       = {};         // highlight index per dropdown
+let lastResult = null;       // last calculated result object
+
+// ════════════════════════════════
+//  INIT
+// ════════════════════════════════
+async function init() {
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+
+  // Migrate user-added items from old LS keys (one-time)
+  const oldCars   = lsGet('tp_cars_v1') || lsGet('tp_cars_v2') || [];
+  const oldTracks = lsGet('tp_tracks_v1') || lsGet('tp_tracks_v2') || [];
+  const oldGames  = lsGet('tp_games_v1') || [];
+
+  // Hardcoded defaults — always available regardless of fetch
+  const defaultCars = [
+    'Audi RS 6','Audi R8 LMS GT4 Evo','BMW M2 CS Racing','BMW M3 E30',
+    'BMW M3 E46 CSL','BMW M4 CSL','BMW M4 GT3 Evo','Caterham Seven Academy',
+    'Dallara Stradale','Dallara EXP','Ferrari 288 GTO','Ferrari 296 GT3',
+    'Ferrari F40 LM','Ferrari F2004 Formula 1 car','Ford Mustang GT3',
+    'Honda NSX-R','Honda S2000 AP1','Lamborghini Countach LP5000 Quattrovalvole',
+    'Lamborghini Huracán STO','Lamborghini Huracán Super Trofeo EVO 2',
+    'Maserati GT2 (MC20)','Mazda MX-5 ND Global Cup','Mercedes-Benz 190E Evo II',
+    'Mercedes-AMG GT2','Porsche 718 Cayman GT4 Clubsport',
+    'Porsche 911 GT3 Cup (992) ABS & TC Variant',
+    'Porsche 911 GT3 RS (992) Weissach Edition','Porsche 992 GT3 R Rennsport',
+    'Toyota Corolla AE86 Sprinter Trueno','Toyota GR86 Hakone Edition',
+    'Toyota Supra MKIV RZ 3.0 Turbo'
+  ];
+  const defaultTracks = [
+    'Brands Hatch #GP','Brands Hatch #Indy','Circuit de Spa-Francorchamps',
+    'Imola','Laguna Seca','Monza','Mount Panorama, Bathurst',
+    'Nürburgring Grand Prix','Nürburgring Nordschleife #24H',
+    'Nürburgring Nordschleife #Touristenfahrten','Sebring International Raceway'
+  ];
+  const defaultGames = [
+    'ACC','AMS2','Assetto Corsa','Assetto Corsa EVO','F1 24',
+    'GT7','iRacing','Le Mans Ultimate','rFactor 2'
+  ];
+
+  // Try to fetch JSON (works when served via HTTP, not file://)
+  let jsonCars = defaultCars, jsonTracks = defaultTracks;
+  try {
+    const r = await fetch('./data/cars-tracks.json');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (Array.isArray(d.cars))   jsonCars   = d.cars;
+    if (Array.isArray(d.tracks)) jsonTracks = d.tracks;
+  } catch (e) {
+    console.warn('TracePace: using built-in car/track lists (fetch failed:', e.message, ')');
+  }
+
+  // Merge: JSON defaults + user-saved items + migrated old items
+  const savedCars   = lsGet(LS_CARS)   || [];
+  const savedTracks = lsGet(LS_TRACKS) || [];
+  const savedGames  = lsGet(LS_GAMES)  || [];
+
+  carList   = mergeUniq(jsonCars,   mergeUniq(savedCars,   oldCars));
+  trackList = mergeUniq(jsonTracks, mergeUniq(savedTracks, oldTracks));
+  gameList  = mergeUniq(savedGames.length ? savedGames : defaultGames, oldGames);
+
+  carList.sort(); trackList.sort(); gameList.sort();
+  saveLists();
+
+  // Close dropdowns on outside tap
+  document.addEventListener('touchstart', closeDdsOnOutside, { passive: true });
+  document.addEventListener('mousedown',  closeDdsOnOutside);
+}
+
+function closeDdsOnOutside(e) {
+  ['game','car','track'].forEach(t => {
+    const wrap = document.getElementById(t + '-wrap');
+    if (wrap && !wrap.contains(e.target)) closeDd(t);
+  });
+}
+
+// ════════════════════════════════
+//  STORAGE
+// ════════════════════════════════
+function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
+function lsSet(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function saveLists() { lsSet(LS_CARS, carList); lsSet(LS_TRACKS, trackList); lsSet(LS_GAMES, gameList); }
+function mergeUniq(a, b) { return [...new Set([...(a||[]), ...(b||[])])]; }
+function mkKey(game, car, track, mode) { return `${game||''}||${car||''}||${track||''}||${mode||'sprint'}`; }
+
+// ════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════
+function goTab(name) {
+  ['calc','saved','manage'].forEach(n => {
+    document.getElementById('page-'  + (n==='calc'?'calc':n)).classList.toggle('active', n===name);
+    document.getElementById('tab-' + n).classList.toggle('active', n===name);
+  });
+  if (name==='saved')  renderSaved();
+  if (name==='manage') renderManage();
+}
+function goManage() { goTab('manage'); }
+
+// ════════════════════════════════
+//  CALC MODE
+// ════════════════════════════════
+function setCalcMode(m) {
+  calcMode = m;
+  document.getElementById('mopt-sprint').classList.toggle('active', m==='sprint');
+  document.getElementById('mopt-endurance').classList.toggle('active', m==='endurance');
+  document.getElementById('header-mode').textContent = m==='sprint' ? 'Sprint' : 'Endurance';
+  document.getElementById('card-tank').classList.toggle('hidden', m==='sprint');
+  clearResults();
+}
+
+// ════════════════════════════════
+//  RACE FORMAT
+// ════════════════════════════════
+function setFormat(f) {
+  raceFormat = f;
+  document.getElementById('fmt-timed').classList.toggle('active', f==='timed');
+  document.getElementById('fmt-laps').classList.toggle('active',  f==='laps');
+  document.getElementById('input-timed').classList.toggle('hidden', f==='laps');
+  document.getElementById('input-laps').classList.toggle('hidden',  f==='timed');
+  document.getElementById('field-laptime').classList.toggle('hidden', f==='laps');
+}
+
+
+
+// ════════════════════════════════
+//  SAFETY STEPPER
+// ════════════════════════════════
+function stepSafety(d) {
+  safetyLaps = Math.max(0, Math.min(10, safetyLaps + d));
+  document.getElementById('safety-val').textContent = safetyLaps;
+}
+
+// ════════════════════════════════
+//  DROPDOWN
+// ════════════════════════════════
+function listFor(t) {
+  if (t==='car')   return carList;
+  if (t==='track') return trackList;
+  if (t==='game')  return gameList;
+  return [];
+}
+
+function filterCombo(t) {
+  buildDd(t);
+  document.getElementById(t+'-dd').classList.add('open');
+  checkCombo();
+}
+
+function openDd(t) {
+  buildDd(t);
+  document.getElementById(t+'-dd').classList.add('open');
+}
+
+function toggleDd(t) {
+  const dd = document.getElementById(t+'-dd');
+  if (dd.classList.contains('open')) {
+    closeDd(t);
+  } else {
+    document.getElementById(t+'-input').focus();
+    buildDd(t);
+    dd.classList.add('open');
+  }
+}
+
+function closeDd(t) {
+  const dd = document.getElementById(t+'-dd');
+  if (dd) dd.classList.remove('open');
+  ddHi[t] = -1;
+}
+
+function buildDd(t) {
+  const dd    = document.getElementById(t+'-dd');
+  const query = (document.getElementById(t+'-input').value || '').trim().toLowerCase();
+  const list  = listFor(t);
+  const hits  = query ? list.filter(x => x.toLowerCase().includes(query)) : list;
+  const typed = (document.getElementById(t+'-input').value || '').trim();
+  ddHi[t] = -1;
+  dd.innerHTML = '';
+
+  hits.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'combo-opt';
+    el.textContent = item;
+    el.addEventListener('touchend', e => { e.preventDefault(); pickCombo(t, item); });
+    el.addEventListener('mousedown', e => { e.preventDefault(); pickCombo(t, item); });
+    dd.appendChild(el);
+  });
+
+  if (typed && !list.find(x => x.toLowerCase() === typed.toLowerCase())) {
+    const el = document.createElement('div');
+    el.className = 'combo-opt custom-opt';
+    el.textContent = `↵ Use "${typed}"`;
+    el.addEventListener('touchend', e => { e.preventDefault(); pickCombo(t, typed); });
+    el.addEventListener('mousedown', e => { e.preventDefault(); pickCombo(t, typed); });
+    dd.appendChild(el);
+  }
+
+  if (!hits.length && !typed) {
+    dd.innerHTML = '<div class="combo-opt" style="color:var(--text3);cursor:default;">No items — use Manage to add</div>';
+  }
+}
+
+function pickCombo(t, val) {
+  document.getElementById(t+'-input').value = val;
+  closeDd(t);
+  checkCombo();
+}
+
+function ddKey(e, t) {
+  const dd   = document.getElementById(t+'-dd');
+  const opts = [...dd.querySelectorAll('.combo-opt:not([style*="cursor:default"])')];
+  if (!dd.classList.contains('open')) { openDd(t); return; }
+  if (e.key==='ArrowDown') {
+    e.preventDefault();
+    ddHi[t] = Math.min((ddHi[t]||0)+1, opts.length-1);
+    opts.forEach((o,i) => o.classList.toggle('hi', i===ddHi[t]));
+    opts[ddHi[t]]?.scrollIntoView({block:'nearest'});
+  } else if (e.key==='ArrowUp') {
+    e.preventDefault();
+    ddHi[t] = Math.max((ddHi[t]||0)-1, 0);
+    opts.forEach((o,i) => o.classList.toggle('hi', i===ddHi[t]));
+    opts[ddHi[t]]?.scrollIntoView({block:'nearest'});
+  } else if (e.key==='Enter') {
+    e.preventDefault();
+    if (ddHi[t] >= 0 && opts[ddHi[t]]) {
+      const v = opts[ddHi[t]].textContent.replace(/^↵ Use "(.+)"$/, '$1');
+      pickCombo(t, v);
+    } else {
+      const v = document.getElementById(t+'-input').value.trim();
+      if (v) pickCombo(t, v);
+    }
+  } else if (e.key==='Escape') { closeDd(t); }
+}
+
+// ════════════════════════════════
+//  COMBO CHANGE — load saved data
+// ════════════════════════════════
+function checkCombo() {
+  const game  = val('game-input');
+  const car   = val('car-input');
+  const track = val('track-input');
+  if (!car && !track) { hideBanner(); return; }
+
+  const sessions = lsGet(LS_SESSIONS) || {};
+  const key = mkKey(game, car, track, calcMode);
+  const s = sessions[key];
+  if (!s) { hideBanner(); return; }
+
+  // Pre-fill fields
+  if (s.fuelPerLap) document.getElementById('inp-fpl').value  = s.fuelPerLap;
+  if (s.tankSize)   document.getElementById('inp-tank').value = s.tankSize;
+  if (s.safetyLaps != null) { safetyLaps = s.safetyLaps; document.getElementById('safety-val').textContent = safetyLaps; }
+  if (s.lapTimeSec) {
+    const ltM = Math.floor(s.lapTimeSec / 60);
+    const ltS = +(s.lapTimeSec % 60).toFixed(3);
+    document.getElementById('inp-lt-m').value = ltM;
+    document.getElementById('inp-lt-s').value = ltS;
+  }
+
+  // Show banner
+  const grid = document.getElementById('saved-banner-grid');
+  grid.innerHTML = [
+    { k:'Fuel/Lap',   v: s.fuelPerLap  ? s.fuelPerLap+'L' : '—' },
+    { k:'Tank',       v: s.tankSize    ? s.tankSize+'L'    : '—' },
+    { k:'Lap Time',   v: s.lapTimeSec  ? sec2lap(s.lapTimeSec) : '—' },
+    { k:'Safety',     v: s.safetyLaps != null ? s.safetyLaps+' laps' : '—' },
+  ].map(f=>`<div class="saved-banner-item"><div class="sbk">${f.k}</div><div class="sbv">${f.v}</div></div>`).join('');
+  document.getElementById('saved-banner').classList.add('visible');
+  toast(`⚡ Loaded: ${car||track}`);
+}
+
+function hideBanner() {
+  document.getElementById('saved-banner').classList.remove('visible');
+}
+
+// ════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════
+function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+function parseLap(s) {
+  s = (s||'').trim();
+  if (!s) return null;
+  const m = s.match(/^(\d+):(\d{1,2})(?:[.,](\d{1,3}))?$/);
+  if (m) return +m[1]*60 + +m[2] + (m[3] ? +m[3].padEnd(3,'0')/1000 : 0);
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+function sec2lap(sec) {
+  const m = Math.floor(sec/60), s = sec%60;
+  return `${m}:${s.toFixed(1).padStart(4,'0')}`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, ms=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), ms);
+}
+
+function numPop(id) {
+  const el = document.getElementById(id);
+  el?.classList.remove('num-pop');
+  void el?.offsetWidth;
+  el?.classList.add('num-pop');
+}
+
+// ════════════════════════════════
+//  CALCULATE
+// ════════════════════════════════
+function calculate() {
+  const fpl    = parseFloat(val('inp-fpl'));
+  const safety = safetyLaps;
+
+  if (!fpl || fpl <= 0) { toast('⚠ Enter fuel per lap'); return; }
+
+  let raceLaps;
+  const ltM   = parseFloat(val('inp-lt-m')) || 0;
+  const ltS   = parseFloat(val('inp-lt-s')) || 0;
+  const ltSec = ltM > 0 || ltS > 0 ? ltM * 60 + ltS : null;
+
+  if (raceFormat === 'laps') {
+    raceLaps = parseInt(val('inp-fixed-laps'));
+    if (!raceLaps) { toast('⚠ Enter number of laps'); return; }
+  } else {
+    // Timed — HR : MIN inputs
+    const hrs = parseInt(val('inp-dur-a')) || 0;
+    const min = parseInt(val('inp-dur-b')) || 0;
+    const totalSec = hrs * 3600 + min * 60;
+    if (!totalSec) { toast('⚠ Enter race duration'); return; }
+    if (!ltSec)    { toast('⚠ Enter average lap time'); return; }
+    raceLaps = Math.ceil(totalSec / ltSec);
+  }
+
+  const totalLaps  = raceLaps + safety;
+  const totalFuel  = +(totalLaps * fpl).toFixed(2);
+
+  let minStops = 0, numStints = 1, stintLaps = totalLaps, stintFuel = totalFuel, tank = null;
+
+  if (calcMode === 'endurance') {
+    tank = parseFloat(val('inp-tank'));
+    if (!tank || tank <= 0) { toast('⚠ Enter tank capacity for Endurance mode'); return; }
+    const maxPerFill = Math.floor(tank / fpl);
+    minStops  = Math.max(0, Math.ceil(totalLaps / maxPerFill) - 1);
+    numStints = minStops + 1;
+    stintLaps = Math.ceil(totalLaps / numStints);
+    stintFuel = +(stintLaps * fpl).toFixed(2);
+  }
+
+  // Capture duration inputs for saving
+  const durHrs = parseInt(val('inp-dur-a')) || 0;
+  const durMin = parseInt(val('inp-dur-b')) || 0;
+  const fixedLaps = parseInt(val('inp-fixed-laps')) || 0;
+
+  lastResult = { fpl, safety, raceLaps, totalLaps, totalFuel, minStops, numStints, stintLaps, stintFuel, tank, ltSec,
+    tankSize: tank, fuelPerLap: fpl, safetyLaps: safety, lapTimeSec: ltSec,
+    raceFormat, durHrs, durMin, fixedLaps, calcMode };
+
+  // ── Render ──
+  const resSec = document.getElementById('results-section');
+  resSec.classList.remove('hidden');
+
+  // Fuel hero
+  const fuelEl = document.getElementById('res-fuel');
+  fuelEl.innerHTML = `${totalFuel}<span class="result-unit-inline">L</span>`;
+  numPop('res-fuel');
+
+  // Sub label
+  document.getElementById('res-fuel-sub').textContent =
+    `${totalLaps} laps × ${fpl}L/lap` + (safety > 0 ? ` (${raceLaps} race + ${safety} safety)` : '');
+
+  // Result grid
+  const grid = document.getElementById('result-grid');
+  if (calcMode === 'sprint') {
+    grid.innerHTML = `
+      <div class="result-cell" style="grid-column:span 2;border-right:none;">
+        <div class="result-cell-label">Expected Laps</div>
+        <div class="result-cell-value" id="res-laps">${raceLaps}</div>
+        <div class="result-cell-unit">${raceLaps} race laps + ${safety} safety × ${fpl}L/lap</div>
+      </div>`;
+    document.getElementById('result-summary').classList.add('hidden');
+    document.getElementById('stint-section').classList.add('hidden');
+  } else {
+    grid.innerHTML = `
+      <div class="result-cell">
+        <div class="result-cell-label">Expected Laps</div>
+        <div class="result-cell-value">${raceLaps}</div>
+        <div class="result-cell-unit">race laps</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">Min Pit Stops</div>
+        <div class="result-cell-value">${minStops}</div>
+        <div class="result-cell-unit">${minStops === 1 ? 'stop' : 'stops'}</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">Stint Length</div>
+        <div class="result-cell-value">${stintLaps}</div>
+        <div class="result-cell-unit">${stintFuel}L per stint${tank ? ' — full tank: ' + Math.floor(tank/fpl) + ' laps' : ''}</div>
+      </div>
+      <div class="result-cell">
+        <div class="result-cell-label">Stints</div>
+        <div class="result-cell-value">${numStints}</div>
+        <div class="result-cell-unit">${numStints === 1 ? 'stint' : 'stints'}</div>
+      </div>`;
+
+    // Summary strip
+    const sumEl = document.getElementById('result-summary');
+    sumEl.innerHTML = `<strong>${totalLaps} laps</strong> &nbsp;·&nbsp; <strong>${totalFuel}L total</strong> &nbsp;·&nbsp; <strong>${minStops} stop${minStops!==1?'s':''}</strong> &nbsp;·&nbsp; <strong>${stintLaps} laps/stint</strong>`;
+    sumEl.classList.remove('hidden');
+
+    // Stint bar
+    renderStintBar(numStints, stintLaps, totalLaps, fpl);
+  }
+
+  // Show save button
+  document.getElementById('btn-save').classList.remove('hidden');
+
+  // Scroll to results
+  setTimeout(() => resSec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+// ════════════════════════════════
+//  STINT BAR
+// ════════════════════════════════
+const SCOL = ['#e8421a','#ff6b35','#c03010','#ff8850','#a02008','#ffa070'];
+
+function renderStintBar(n, sLaps, total, fpl) {
+  const bar = document.getElementById('stint-bar');
+  const leg = document.getElementById('stint-legend');
+  bar.innerHTML = ''; leg.innerHTML = '';
+  document.getElementById('stint-section').classList.remove('hidden');
+
+  for (let i = 0; i < n; i++) {
+    const laps = (i === n-1) ? total - sLaps*(n-1) : sLaps;
+    const fuel = +(laps*fpl).toFixed(1);
+    const pct  = (laps/total*100).toFixed(1);
+    const col  = SCOL[i % SCOL.length];
+
+    const seg = document.createElement('div');
+    seg.className = 'stint-seg';
+    seg.style.cssText = `width:${pct}%;background:${col}`;
+    seg.title = `S${i+1}: ${laps} laps, ~${fuel}L`;
+    seg.textContent = n <= 8 ? `S${i+1}` : '';
+    bar.appendChild(seg);
+
+    const li = document.createElement('div');
+    li.className = 'stint-leg';
+    li.innerHTML = `<div class="stint-dot" style="background:${col}"></div>S${i+1}: ${laps} laps — ~${fuel}L`;
+    leg.appendChild(li);
+  }
+}
+
+function clearResults() {
+  document.getElementById('results-section').classList.add('hidden');
+  document.getElementById('btn-save').classList.add('hidden');
+  lastResult = null;
+}
+
+// ════════════════════════════════
+//  SAVE COMBO
+// ════════════════════════════════
+function saveCombo() {
+  const game  = val('game-input');
+  const car   = val('car-input');
+  const track = val('track-input');
+  if (!car && !track) { toast('⚠ Select at least a car or track'); return; }
+  if (!lastResult)    { toast('⚠ Calculate first'); return; }
+
+  const sessions = lsGet(LS_SESSIONS) || {};
+  sessions[mkKey(game, car, track, calcMode)] = {
+    game, car, track,
+    fuelPerLap:  lastResult.fpl,
+    tankSize:    lastResult.tank,
+    safetyLaps:  lastResult.safety,
+    lapTimeSec:  lastResult.ltSec,
+    // race setup
+    raceFormat:  lastResult.raceFormat,
+    durHrs:      lastResult.durHrs,
+    durMin:      lastResult.durMin,
+    fixedLaps:   lastResult.fixedLaps,
+    calcMode:    lastResult.calcMode,
+    // results
+    totalFuel:   lastResult.totalFuel,
+    raceLaps:    lastResult.raceLaps,
+    minStops:    lastResult.minStops,
+    stintLaps:   lastResult.stintLaps,
+    stintFuel:   lastResult.stintFuel,
+    savedAt:     new Date().toISOString()
+  };
+  lsSet(LS_SESSIONS, sessions);
+  toast(`✓ Saved: ${[game,car,track].filter(Boolean).join(' — ')}`);
+}
+
+// ════════════════════════════════
+//  SAVED COMBOS PAGE
+// ════════════════════════════════
+function renderSaved() {
+  const sessions = lsGet(LS_SESSIONS) || {};
+  const keys = Object.keys(sessions);
+  const wrap = document.getElementById('saved-content');
+
+  if (!keys.length) {
+    wrap.innerHTML = `<div class="empty-saved">
+      <div class="empty-icon">📋</div>
+      <p>No saved combos yet.<br>Calculate a race and tap Save.</p>
+    </div>`;
+    return;
+  }
+
+  // Group by Game > Car > Track
+  const grouped = {};
+  keys.forEach(k => {
+    const s = sessions[k];
+    const g = s.game || '(No Game)';
+    if (!grouped[g]) grouped[g] = [];
+    grouped[g].push({ k, s });
+  });
+
+  let html = '';
+  Object.keys(grouped).sort().forEach(game => {
+    html += `<div class="saved-group-header">${esc(game)}</div>`;
+    // Sort by car then track
+    grouped[game]
+      .sort((a,b) => (a.s.car||'').localeCompare(b.s.car||'') || (a.s.track||'').localeCompare(b.s.track||''))
+      .forEach(({ k, s }) => {
+        const lt  = s.lapTimeSec ? sec2lap(s.lapTimeSec) : '—';
+        const dt  = s.savedAt ? new Date(s.savedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}) : '';
+        html += `<div class="saved-card">
+          <div class="saved-card-header">
+            <div class="saved-card-titles">
+              <div class="saved-card-car">${esc(s.car||'—')}</div>
+              <div class="saved-card-track">${esc(s.track||'—')}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+              <span class="mode-pill ${s.calcMode === 'endurance' ? 'pill-endurance' : 'pill-sprint'}">${s.calcMode === 'endurance' ? '⏱ Endurance' : '⚡ Sprint'}</span>
+              <div class="saved-card-date">${dt}</div>
+            </div>
+          </div>
+          <div class="saved-card-results">
+            <div class="scr-cell">
+              <div class="scr-label">Fuel</div>
+              <div class="scr-value">${s.totalFuel != null ? s.totalFuel : '—'}</div>
+              <div class="scr-unit">litres</div>
+            </div>
+            <div class="scr-cell">
+              <div class="scr-label">Laps</div>
+              <div class="scr-value">${s.raceLaps != null ? s.raceLaps : '—'}</div>
+              <div class="scr-unit">laps</div>
+            </div>
+            ${s.calcMode === 'endurance' ? `
+            <div class="scr-cell">
+              <div class="scr-label">Stops</div>
+              <div class="scr-value">${s.minStops != null ? s.minStops : '—'}</div>
+              <div class="scr-unit">pit stops</div>
+            </div>
+            <div class="scr-cell">
+              <div class="scr-label">Stint</div>
+              <div class="scr-value">${s.stintLaps != null ? s.stintLaps : '—'}</div>
+              <div class="scr-unit">laps</div>
+            </div>` : `
+            <div class="scr-cell" style="grid-column:span 2;border-right:none;">
+              <div class="scr-label">Duration</div>
+              <div class="scr-value" style="font-size:14px;">${s.raceFormat === 'laps' ? (s.fixedLaps||'—')+' laps' : (s.durHrs||0)+'h '+(s.durMin||0)+'m'}</div>
+              <div class="scr-unit">race format</div>
+            </div>`}
+          </div>
+          <div class="saved-card-inputs">
+            <div class="sci-item"><div class="sci-k">Lap Time</div><div class="sci-v">${lt}</div></div>
+            <div class="sci-item"><div class="sci-k">FPL</div><div class="sci-v">${s.fuelPerLap != null ? s.fuelPerLap+'L' : '—'}</div></div>
+            <div class="sci-item"><div class="sci-k">Tank</div><div class="sci-v">${s.tankSize != null ? s.tankSize+'L' : '—'}</div></div>
+            <div class="sci-item"><div class="sci-k">Safety</div><div class="sci-v">${s.safetyLaps != null ? s.safetyLaps+' laps' : '—'}</div></div>
+          </div>
+          <div class="saved-card-actions">
+            <button class="action-btn action-load" data-key="${esc(k)}" onclick="loadCombo(this.dataset.key)">LOAD</button>
+            <button class="action-btn action-del"  data-key="${esc(k)}" onclick="deleteCombo(this)">DELETE</button>
+          </div>
+        </div>`;
+      });
+  });
+
+  // Export/import
+  html += `<div style="padding:16px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="action-btn action-load" style="flex:1;" onclick="exportSessions()">⬇ Export JSON</button>
+    <label class="action-btn action-load" style="flex:1;text-align:center;cursor:pointer;">
+      ⬆ Import JSON
+      <input type="file" accept=".json" style="display:none" onchange="importSessions(this)">
+    </label>
+  </div>`;
+
+  wrap.innerHTML = html;
+}
+
+function loadCombo(key) {
+  const s = (lsGet(LS_SESSIONS)||{})[key];
+  if (!s) return;
+
+  goTab('calc');
+
+  // Restore mode
+  if (s.calcMode) setCalcMode(s.calcMode);
+
+  // Restore race format
+  if (s.raceFormat) setFormat(s.raceFormat);
+
+  // Restore duration inputs
+  if (s.raceFormat !== 'laps') {
+    if (s.durHrs != null) document.getElementById('inp-dur-a').value = s.durHrs;
+    if (s.durMin != null) document.getElementById('inp-dur-b').value = s.durMin;
+  } else {
+    if (s.fixedLaps) document.getElementById('inp-fixed-laps').value = s.fixedLaps;
+  }
+
+  // Restore fuel/lap, tank, safety
+  if (s.fuelPerLap) document.getElementById('inp-fpl').value   = s.fuelPerLap;
+  if (s.tankSize)   document.getElementById('inp-tank').value  = s.tankSize;
+  if (s.safetyLaps != null) {
+    safetyLaps = s.safetyLaps;
+    document.getElementById('safety-val').textContent = safetyLaps;
+  }
+
+  // Restore lap time
+  if (s.lapTimeSec) {
+    document.getElementById('inp-lt-m').value = Math.floor(s.lapTimeSec / 60);
+    document.getElementById('inp-lt-s').value = +(s.lapTimeSec % 60).toFixed(3);
+  }
+
+  // Restore game / car / track fields
+  if (s.game)  document.getElementById('game-input').value  = s.game;
+  if (s.car)   document.getElementById('car-input').value   = s.car;
+  if (s.track) document.getElementById('track-input').value = s.track;
+
+  clearResults();
+  toast(`Loaded ${s.calcMode === 'endurance' ? 'Endurance' : 'Sprint'}: ${[s.car, s.track].filter(Boolean).join(' @ ')}`);
+}
+
+function deleteCombo(btn) {
+  const key = btn.dataset.key;
+  const sessions = lsGet(LS_SESSIONS)||{};
+  const s = sessions[key];
+  if (!s) return;
+  if (!confirm(`Delete: ${[s.game,s.car,s.track].filter(Boolean).join(' — ')}?`)) return;
+  delete sessions[key];
+  lsSet(LS_SESSIONS, sessions);
+  renderSaved();
+  toast('Deleted.');
+}
+
+function exportSessions() {
+  const s = lsGet(LS_SESSIONS)||{};
+  const blob = new Blob([JSON.stringify({sessions:s},null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tracepace-sessions.json';
+  a.click();
+  toast('✓ Exported');
+}
+
+function importSessions(input) {
+  const file = input.files[0]; if (!file) return;
+  const fr = new FileReader();
+  fr.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      const inc = d.sessions || d;
+      lsSet(LS_SESSIONS, {...(lsGet(LS_SESSIONS)||{}), ...inc});
+      toast(`✓ Imported ${Object.keys(inc).length} combo(s)`);
+      renderSaved();
+    } catch { toast('⚠ Invalid JSON'); }
+  };
+  fr.readAsText(file); input.value='';
+}
+
+// ════════════════════════════════
+//  MANAGE PAGE
+// ════════════════════════════════
+let manageSection = 'cars'; // cars | tracks | games
+
+function renderManage() {
+  const wrap = document.getElementById('manage-content');
+
+  const renderSection = (type, list, placeholder, hint) => {
+    const items = list.map((item, i) =>
+      `<div class="manage-list-item">
+        <span class="manage-item-name">${esc(item)}</span>
+        <button class="manage-del-btn" data-type="${type}" data-idx="${i}" onclick="manDel(this)">✕</button>
+      </div>`
+    ).join('');
+    return `<div style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+      <div class="manage-section-title">${type === 'cars' ? '🚗 Cars' : type === 'tracks' ? '🏁 Tracks' : '🎮 Games'}</div>
+      <div id="man-list-${type}" style="max-height:260px;overflow-y:auto;">${items || '<div class="manage-list-item" style="color:var(--text3);">No items yet</div>'}</div>
+      <div class="manage-add-row">
+        <input class="manage-add-input" id="man-inp-${type}" type="text" placeholder="${placeholder}"
+          onkeydown="if(event.key==='Enter') manAdd('${type}')">
+        <button class="manage-add-btn" onclick="manAdd('${type}')">ADD</button>
+      </div>
+      ${hint ? `<div style="padding:0 16px 14px;font-size:12px;color:var(--text3);">${hint}</div>` : ''}
+    </div>`;
+  };
+
+  wrap.innerHTML =
+    `<div style="padding:12px 16px 6px;font-size:13px;color:var(--text3);">
+      Manage lists used in the calculator dropdowns. Changes are saved automatically.
+    </div>
+    <div style="padding:0 16px 24px;">` +
+    renderSection('games', gameList, 'e.g. iRacing, ACC, GT7…', '') +
+    renderSection('cars',  carList,  'e.g. Porsche 992 GT3 R Rennsport', '') +
+    renderSection('tracks', trackList, 'e.g. Circuit de Spa-Francorchamps', 'Tip: add layout variants with " # " — e.g. "Brands Hatch #GP"') +
+    `</div>`;
+}
+
+function manDel(btn) {
+  const type = btn.dataset.type;
+  const i    = parseInt(btn.dataset.idx);
+  const list = type==='cars' ? carList : type==='tracks' ? trackList : gameList;
+  list.splice(i, 1);
+  saveLists();
+  renderManage();
+  toast('Removed.');
+}
+
+function manAdd(type) {
+  const inp  = document.getElementById('man-inp-'+type);
+  const v    = inp.value.trim();
+  if (!v) return;
+  const list = type==='cars' ? carList : type==='tracks' ? trackList : gameList;
+  if (list.find(x => x.toLowerCase() === v.toLowerCase())) { toast('Already in list.'); return; }
+  list.push(v); list.sort();
+  saveLists();
+  renderManage();
+  toast(`✓ Added: ${v}`);
+  // Re-focus the input in new render
+  setTimeout(() => document.getElementById('man-inp-'+type)?.focus(), 50);
+}
+
+// ════════════════════════════════
+//  BOOT
+// ════════════════════════════════
+init();
+</script>
+</body>
+</html>
