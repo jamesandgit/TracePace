@@ -767,6 +767,51 @@ input  { font-family: var(--font); }
   letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border);
 }
+.saved-search-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.saved-search {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  padding: 11px 14px;
+  outline: none;
+  min-width: 0;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.saved-search:focus { border-color: var(--orange); }
+.saved-search::placeholder { color: var(--text3); }
+.saved-search::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  height: 18px; width: 18px;
+  background: var(--text3);
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M4 4l8 8M12 4l-8 8' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>") center/12px no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M4 4l8 8M12 4l-8 8' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>") center/12px no-repeat;
+}
+.saved-search-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  font-family: var(--mono);
+}
 .saved-group-header {
   padding: 12px 16px 8px;
   font-size: 11px;
@@ -1298,6 +1343,7 @@ let trackList  = [];
 let gameList   = [];
 let ddHi       = {};         // highlight index per dropdown
 let lastResult = null;       // last calculated result object
+let savedQuery = '';         // search query for Saved page
 
 // ════════════════════════════════
 //  INIT
@@ -1392,7 +1438,7 @@ function goTab(name) {
     document.getElementById('page-'  + (n==='calc'?'calc':n)).classList.toggle('active', n===name);
     document.getElementById('tab-' + n).classList.toggle('active', n===name);
   });
-  if (name==='saved')  renderSaved();
+  if (name==='saved')  { savedQuery = ''; renderSaved(); }
   if (name==='manage') renderManage();
 }
 function goManage() { goTab('manage'); }
@@ -1812,16 +1858,47 @@ function renderSaved() {
     return;
   }
 
+  // Filter by search query (matches game, car, or track)
+  const q = savedQuery.trim().toLowerCase();
+  const filteredKeys = q
+    ? keys.filter(k => {
+        const s = sessions[k];
+        return (s.game||'').toLowerCase().includes(q)
+            || (s.car||'').toLowerCase().includes(q)
+            || (s.track||'').toLowerCase().includes(q);
+      })
+    : keys;
+
+  // Sticky search bar — always render
+  const searchBar = `<div class="saved-search-wrap">
+    <input class="saved-search" id="saved-search" type="search"
+      placeholder="🔍 Search car, track, or game…"
+      value="${esc(savedQuery)}"
+      oninput="onSavedSearch(this.value)">
+    <div class="saved-search-meta">${filteredKeys.length} of ${keys.length}</div>
+  </div>`;
+
+  if (!filteredKeys.length) {
+    wrap.innerHTML = searchBar + `<div class="empty-saved" style="padding:40px 32px;">
+      <div class="empty-icon">🔍</div>
+      <p>No combos match "${esc(savedQuery)}".</p>
+    </div>`;
+    // Re-focus input after re-render
+    const inp = document.getElementById('saved-search');
+    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+    return;
+  }
+
   // Group by Game > Car > Track
   const grouped = {};
-  keys.forEach(k => {
+  filteredKeys.forEach(k => {
     const s = sessions[k];
     const g = s.game || '(No Game)';
     if (!grouped[g]) grouped[g] = [];
     grouped[g].push({ k, s });
   });
 
-  let html = '';
+  let html = searchBar;
   Object.keys(grouped).sort().forEach(game => {
     html += `<div class="saved-group-header">${esc(game)}</div>`;
     // Sort by car then track
@@ -1893,6 +1970,15 @@ function renderSaved() {
   </div>`;
 
   wrap.innerHTML = html;
+
+  // Re-focus search input and preserve caret position
+  const inp = document.getElementById('saved-search');
+  if (inp && savedQuery) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+}
+
+function onSavedSearch(v) {
+  savedQuery = v;
+  renderSaved();
 }
 
 function loadCombo(key) {
